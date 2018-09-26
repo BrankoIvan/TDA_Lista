@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdbool.h>
 
 /* --------------Tipos de datos-------------- */
@@ -8,7 +9,7 @@ typedef struct lista lista_t;
 
 // Crea una lista.
 // Post: devuelve una lista vacia.
-lista_t *lista_crear(void);
+lista_t* lista_crear(void);
 
 // Verifica si la lista tiene elementos o no.
 // Pre: la lista fue creada.

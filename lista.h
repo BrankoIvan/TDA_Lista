@@ -25,22 +25,24 @@ bool lista_insertar_primero(lista_t *lista, void *dato);
 // Post: se agrego un nuevo elemento a la lista, dato se encuentra al final de la lista.
 bool lista_insertar_ultimo(lista_t *lista, void *dato);
 
-// Agrega un nuevo elemento al principio de la lista. Devuelve falso en caso de error.
+// Borra el primer elemento de la lista. Si la lista tiene elementos, borra el
+// primero de la lista y devuelve su dato, si esta vacia, devuelve NULL.
 // Pre: La lista fue creada.
-// Post: se agrego un nuevo elemento a la lista, dato se al principio de la lista.
-void *lista_borrar_primero(lista_t *lista);
+// Post: Se devolvio el dato del primer elemento. La lista tiene un elemento menos 
+// si la lista no esta vacia
+void* lista_borrar_primero(lista_t *lista);
 
 // Obtiene el dato del primer elemento de la lista. Si la lista tiene
 // elementos, se devuelve el dato del primero, si está vacía devuelve NULL.
 // Pre: La lista fue creada
 // Post: Devuelve el primer elemento de la lista o NULL si no tiene elementos
-void *lista_ver_primero(const lista_t *lista);
+void* lista_ver_primero(const lista_t *lista);
 
 // Obtiene el dato del ultimo elemento de la lista. Si la lista tiene
 // elementos, se devuelve el dato del ultimo, si está vacía devuelve NULL.
 // Pre: La lista fue creada
 // Post: Devuelve el ultimo elemento elemento de la lista o NULL si no tiene elementos
-void *lista_ver_ultimo(const lista_t* lista);
+void* lista_ver_ultimo(const lista_t* lista);
 
 // Obtiene la cantidad de elementos en la lista
 // Pre: La lista fue creada

@@ -1,6 +1,8 @@
 #include "lista.h"
 #include <stdbool.h>
 
+/******************************************************************************/
+
 typedef struct nodo {
     void* data;
     struct nodo* next;
@@ -12,6 +14,13 @@ typedef struct lista {
     size_t length;
 }lista_t;
 
+typedef struct lista_iter {
+    nodo_t* actual;
+    nodo_t* anterior;
+    size_t* length;
+} lista_iter_t;
+
+/******************************************************************************/
 
 nodo_t* nodo_crear(void* dato){
     nodo_t* nodo = malloc(sizeof(nodo_t));
@@ -26,11 +35,13 @@ nodo_t* nodo_crear(void* dato){
 void* nodo_destruir(nodo_t* nodo){
     void* dato = nodo->data;
     free(nodo);
+
     return dato;
 }
 
+/******************************************************************************/
 
-lista_t *lista_crear(void){
+lista_t* lista_crear(void){
     lista_t* lista = malloc(sizeof(lista_t));
     if(lista == NULL) return NULL;
 
@@ -46,31 +57,31 @@ bool lista_esta_vacia(const lista_t* lista){
 }
 
 bool lista_insertar_primero(lista_t *lista, void* dato){
-    nodo_t* nodo = nodo_crear(dato);
-    if (nodo == NULL) return false;
+    nodo_t* nuevo_nodo = nodo_crear(dato);
+    if (nuevo_nodo == NULL) return false;
 
     if (lista_esta_vacia(lista))
-        lista->last = nodo;
+        lista->last = nuevo_nodo;
     else
-        nodo->next = lista->first;
+        nuevo_nodo->next = lista->first;
 
-    lista->first = nodo;
-    lista->length++;
+    lista->first = nuevo_nodo;
+    lista->length ++;
 
     return true;
 }
 
 bool lista_insertar_ultimo(lista_t *lista, void* dato){
-    nodo_t* nodo = nodo_crear(dato);
-    if (nodo == NULL) return false;
+    nodo_t* nuevo_nodo = nodo_crear(dato);
+    if (nuevo_nodo == NULL) return false;
 
     if (lista_esta_vacia(lista))
-        lista->first = nodo;
+        lista->first = nuevo_nodo;
     else
-        lista->last->next = nodo;
+        lista->last->next = nuevo_nodo;
 
-    lista->last = nodo;
-    lista->length++;
+    lista->last = nuevo_nodo;
+    lista->length ++;
 
     return true;
 }
@@ -78,11 +89,11 @@ bool lista_insertar_ultimo(lista_t *lista, void* dato){
 void* lista_borrar_primero(lista_t* lista){
     if (lista_esta_vacia(lista)) return NULL;
 
-    nodo_t* nodo = lista->first;
+    nodo_t* primer_nodo = lista->first;
     lista->first = lista->first->next;
-    lista->length--;
+    lista->length --;
 
-    return nodo_destruir(nodo);
+    return nodo_destruir(primer_nodo);
 }
 
 void* lista_ver_primero(const lista_t* lista){
@@ -102,9 +113,72 @@ size_t lista_largo(const lista_t* lista){
 void lista_destruir(lista_t* lista, void destruir_dato(void*)){
     while(!lista_esta_vacia(lista)){
         void* dato = lista_borrar_primero(lista);
-        if (destruir_dato != NULL);
-            destruir_dato(dato);
+        if (destruir_dato != NULL) destruir_dato(dato);
     }
 
     free(lista);
+}
+
+/******************************************************************************/
+
+void lista_iterar(lista_t* lista, bool visitar(void* dato, void* extra), void* extra){
+    if (lista_esta_vacia(lista)) return;
+
+    nodo_t* actual = lista->first;
+
+    while (actual != NULL){
+        if(!visitar(actual->data, extra)) break;
+        actual = actual->next;
+    }
+}
+
+/******************************************************************************/
+
+lista_iter_t* lista_iter_crear(lista_t* lista){
+    lista_iter_t* iter = malloc(sizeof(lista_iter_t));
+    if (iter == NULL) return NULL;
+
+    iter->anterior = NULL;
+    iter->actual = lista->first;
+    iter->length = &lista->length;
+    return iter;
+}
+
+bool lista_iter_avanzar(lista_iter_t* iter){
+    if (lista_iter_al_final(iter)) return false;
+
+    iter->anterior = iter->actual;
+    iter->actual = iter->actual->next;
+    return true;
+}
+
+void* lista_iter_ver_actual(const lista_iter_t* iter){
+    return iter->actual->data;
+}
+
+bool lista_iter_al_final(const lista_iter_t* iter){
+    return iter->actual == NULL;
+}
+
+void lista_iter_destruir(lista_iter_t* iter){
+    free(iter);
+}
+
+bool lista_iter_insertar(lista_iter_t* iter, void* dato){
+    nodo_t* nodo = nodo_crear(dato);
+    if (nodo == NULL) return false;
+
+    nodo->next = iter->actual;
+    iter->anterior->next = nodo;
+    iter->actual = nodo;
+    iter->length++;
+    return true;
+}
+
+void* lista_iter_borrar(lista_iter_t* iter){
+    nodo_t* nodo = iter->actual;
+    iter->actual = iter->actual->next;
+    iter->anterior->next = iter->actual;
+    iter->length--;
+    return nodo_destruir(nodo);
 }

@@ -1,11 +1,17 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-/* --------------Tipos de datos-------------- */
+/******************************************************************************/
+/*                             Tipos de datos                                 */
+/******************************************************************************/
 
 typedef struct lista lista_t;
+typedef struct lista_iter lista_iter_t;
 
-/* ----------Primitivas de la Lista---------- */
+
+/******************************************************************************/
+/*                         Primitivas de la Lista                             */
+/******************************************************************************/
 
 // Crea una lista.
 // Post: devuelve una lista vacia.
@@ -57,7 +63,57 @@ size_t lista_largo(const lista_t *lista);
 // Post: se eliminaron todos los elementos de la lista.
 void lista_destruir(lista_t *lista, void destruir_dato(void *));
 
+
+/******************************************************************************/
+/*                   Primitivas del Iterador Interno                          */
+/******************************************************************************/
+
+// 
+//
+void lista_iterar(lista_t *lista, bool visitar(void *dato, void *extra), void *extra);
+
+
+/******************************************************************************/
+/*                   Primitivas del Iterador Externo                          */
+/******************************************************************************/
+
+// Crea un un iterador externo para una lista.
+// Post: devuelve un iterador iniciado en el primer elemento de la lista.
+lista_iter_t *lista_iter_crear(lista_t *lista);
+
+// 
+// Pre: El iterador fue creado
+// Post: 
+bool lista_iter_avanzar(lista_iter_t *iter);
+
+// 
+// Pre: El iterador fue creado
+// Post: 
+void *lista_iter_ver_actual(const lista_iter_t *iter);
+
+// 
+// Pre: El iterador fue creado
+// Post: 
+bool lista_iter_al_final(const lista_iter_t *iter);
+
+// 
+// Pre: El iterador fue creado
+// Post: 
+void lista_iter_destruir(lista_iter_t *iter);
+
+// 
+// Pre: El iterador fue creado
+// Post: 
+bool lista_iter_insertar(lista_iter_t *iter, void *dato);
+
+// 
+// Pre: El iterador fue creado
+// Post: 
+void *lista_iter_borrar(lista_iter_t *iter);
+
+
 /* ------------Pruebas Unitarias------------- */
 
 // Realiza pruebas sobre la implementación del alumno.
+//
 void pruebas_lista_alumno(void);

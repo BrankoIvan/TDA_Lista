@@ -153,6 +153,7 @@ bool lista_iter_avanzar(lista_iter_t* iter){
 }
 
 void* lista_iter_ver_actual(const lista_iter_t* iter){
+    if (lista_iter_al_final(iter)) return NULL;
     return iter->actual->data;
 }
 
@@ -170,8 +171,10 @@ bool lista_iter_insertar(lista_iter_t* iter, void* dato){
 
     nuevo_nodo->next = iter->actual;
 
-    if (iter->anterior == NULL)
+    if (iter->anterior == NULL){
         iter->lista->first = nuevo_nodo;
+        if (iter->lista->last == NULL) iter->lista->last = nuevo_nodo;
+    }
     else
         iter->anterior->next = nuevo_nodo;
 

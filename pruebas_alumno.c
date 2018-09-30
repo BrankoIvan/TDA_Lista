@@ -3,12 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define CADENA "abcdefghij"
+#define CADENA_1 "abcde"
+#define CADENA_2 "FGHIJ"
 #define N_MUCHOS 10000 // Cantidad de elementos con los que se maneja la prueba de volumen
-#define N_VARIOS 3 // La cantidad de lineas impresa por pantalla es linealmente dependiente de este numero, debe ser mayor a 0 y menor a 10
+#define N_VARIOS 5 // La cantidad de lineas impresa por pantalla es linealmente dependiente de este numero, debe ser mayor a 0 y menor a 10
 
 #define CREAR_LISTA() lista_t* lista = lista_crear()
-#define FORN(x,n,m) for(int x = n; x != m; x += (m-n)/abs(m-n)) /*Necesita <stdlib.h>*/
+#define CREAR_ITERADOR(iter_name, list_name) lista_iter_t* iter_name = lista_iter_crear(list_name)
+#define FORN(x, n, m) for(int x = n; x != m; x += (m-n)/abs(m-n)) /*Necesita <stdlib.h>*/
 #define PRINT_END_OF_LINE() printf("\n")
 #define PRINT_SEPARATOR() printf("\n**********************************************************************")
 
@@ -44,8 +46,15 @@ void estructura_destruir(void* elemento){
 /******************************************************************************/
 // FUNCIONES AUXILIARES PARA PRUEBAS DEL ITERADOR INTERNO
 
-bool imprimir_todo(void* valor, void* extra){
+bool imprimir_todo_d(void* valor, void* extra){
+    if (valor == NULL) printf("_ ");
     printf("%d ", *(int*)valor);
+    return true;
+}
+
+bool imprimir_todo_c(void* valor, void* extra){
+    if (valor == NULL) printf("_ ");
+    else printf("%c ", *(char*)valor);
     return true;
 }
 
@@ -75,6 +84,32 @@ bool duplicar_valores(void* valor, void* extra){
     print_test("", *(int*) valor == *(int*) extra);
     *(int*) extra -= 1;
     return true;
+}
+
+/******************************************************************************/
+// FUNCIONES AUXILIARES PARA PRUEBAS DEL ITERADOR EXTERNO
+
+void mostrar_estado(lista_t* lista){
+    printf("\n        Estado de la lista: (Elemento NULL se representan con '_')\n");
+    printf("        [ ");
+    lista_iterar(lista, imprimir_todo_c, NULL);
+    printf("]\n");
+    printf("        Largo: %d\n", (int)lista_largo(lista));
+    if (lista_esta_vacia(lista)){
+        printf("        Esta Vacia\n");
+    } else {
+        printf("        Primero: ");
+        if (lista_ver_primero(lista))
+            printf("%c\n", *(char*)lista_ver_primero(lista));
+        else
+            printf("_\n");
+
+        printf("        ULtimo : ");
+        if (lista_ver_primero(lista))
+            printf("%c\n\n", *(char*)lista_ver_ultimo(lista));
+        else
+            printf("_\n\n");
+    }
 }
 
 /******************************************************************************/
@@ -171,7 +206,7 @@ void test_lista_comportamiento_extendido(){
 
 void test_lista_algunos_elementos(){
     CREAR_LISTA();
-    char dummy[] = CADENA;
+    char dummy[] = CADENA_1;
 
     PRINT_SEPARATOR();;
     printf("\nPRUEBA - LISTA: VARIOS ELEMENTOS\n");
@@ -343,13 +378,229 @@ void test_lista_destruccion(){
 
 void test_iter_e_comportamiento(){
     CREAR_LISTA();
-    lista_destruir(lista,NULL);
+    CREAR_ITERADOR(iter, lista);
+    char dummy_a = 'a', dummy_b = 'b';
+
+    PRINT_SEPARATOR();
+    printf("\nPRUEBA - ITERADOR EXTERNO: COMPORTAMIENTO BASICO\n");
+
+    PRINT_END_OF_LINE();
+    print_test("  Creo iterador con lista vacia", iter != NULL);
+    print_test("      Estoy al final", lista_iter_al_final(iter));
+    print_test("      Ver actual es NULL", lista_iter_ver_actual(iter) == NULL);
+    print_test("      Avanzar es invalido", !lista_iter_avanzar(iter));
+    print_test("      Borrar es invalido", lista_iter_borrar(iter) == NULL);
+
+    PRINT_END_OF_LINE();
+    print_test("  Agrego elemento A con el iterador", lista_iter_insertar(iter, &dummy_a));
+    print_test("      No estoy al final", !lista_iter_al_final(iter));
+    print_test("      Ver actual devuelve el elemento A", *(char*)lista_iter_ver_actual(iter) == dummy_a);
+    print_test("  Borrar es valido y devuelve el elemento A", *(char*)lista_iter_borrar(iter) == dummy_a);
+    print_test("      Estoy al final", lista_iter_al_final(iter));
+    print_test("      Ver actual es NULL", lista_iter_ver_actual(iter) == NULL);
+    print_test("      Avanzar es invalido", !lista_iter_avanzar(iter));
+    print_test("      Borrar es invalido", lista_iter_borrar(iter) == NULL);
+
+    PRINT_END_OF_LINE();
+    print_test("  Agrego elemento A con el iterador", lista_iter_insertar(iter, &dummy_a));
+    print_test("      No estoy al final", !lista_iter_al_final(iter));
+    print_test("      Ver actual devuelve el elemento A", *(char*)lista_iter_ver_actual(iter) == dummy_a); 
+    print_test("  Agrego elemento B con el iterador", lista_iter_insertar(iter, &dummy_b));
+    print_test("      No estoy al final", !lista_iter_al_final(iter));
+    print_test("      Ver actual devuelve el elemento B", *(char*)lista_iter_ver_actual(iter) == dummy_b);
+    print_test("  Borrar es valido y devuelve el elemento B", *(char*)lista_iter_borrar(iter) == dummy_b);
+    print_test("      No estoy al final", !lista_iter_al_final(iter));
+    print_test("      Ver actual devuelve el elemento A", *(char*)lista_iter_ver_actual(iter) == dummy_a);
+    print_test("  Borrar es valido y devuelve el elemento A", *(char*)lista_iter_borrar(iter) == dummy_a);
+    print_test("      Estoy al final", lista_iter_al_final(iter));
+    print_test("      Ver actual es NULL", lista_iter_ver_actual(iter) == NULL);
+    print_test("      Avanzar es invalido", !lista_iter_avanzar(iter));
+    print_test("      Borrar es invalido", lista_iter_borrar(iter) == NULL);
+
+    lista_iter_destruir(iter);
+    print_test("\n  Destruyo el iterador", true);
+    lista_destruir(lista,NULL);    
 }
 
-/*test_iter_e_algunos_elementos();
-test_iter_e_NULL();
-test_iter_e_volumen();
-test_iter_e_destruccion();*/
+void test_iter_e_comportamiento_monitoreado(){  //No se me ocurrio un mejor nombre
+    CREAR_LISTA();
+    CREAR_ITERADOR(iter, lista);
+    char dummy_1[N_VARIOS] = CADENA_1;
+    char dummy_2[N_VARIOS] = CADENA_2;
+
+    PRINT_SEPARATOR();
+    printf("\nPRUEBA - ITERADOR EXTERNO: MANEJO DE VARIOS ITERADORES, MONITOREADO CON PRIMITIVAS DE LA LISTA\n");
+
+    PRINT_END_OF_LINE();
+    print_test("  Creo iterador con lista vacia", iter != NULL);
+    print_test("      Estoy al final", lista_iter_al_final(iter));
+    print_test("      Ver actual es NULL", lista_iter_ver_actual(iter) == NULL);
+    print_test("      Avanzar es invalido", !lista_iter_avanzar(iter));
+    print_test("      Borrar es invalido", lista_iter_borrar(iter) == NULL);
+    //mostrar_estado(lista);
+
+    PRINT_END_OF_LINE();
+    FORN(i, 0, N_VARIOS){
+        print_test("  Agrego elemento con el iterador", lista_iter_insertar(iter, &dummy_1[i]));
+        print_test("      No estoy al final", !lista_iter_al_final(iter));
+        print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter) == dummy_1[i]);
+        printf("      Actual: %c\n", *(char*)lista_iter_ver_actual(iter));
+        //mostrar_estado(lista);
+    }
+
+    PRINT_END_OF_LINE();
+    FORN(i, N_VARIOS-1, 0){
+        print_test("  Avanzar es valido", lista_iter_avanzar(iter));
+        print_test("      No estoy al final", !lista_iter_al_final(iter));
+        print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter) == dummy_1[i-1]);
+        printf("      Actual: %c\n", *(char*)lista_iter_ver_actual(iter));
+    }
+
+    print_test("  Avanzar es valido", lista_iter_avanzar(iter));
+    print_test("      Estoy al final", lista_iter_al_final(iter));
+    print_test("      Ver actual es NULL", lista_iter_ver_actual(iter) == NULL);
+    print_test("      Avanzar es invalido", !lista_iter_avanzar(iter));
+    print_test("      Borrar es invalido", lista_iter_borrar(iter) == NULL);
+
+    lista_iter_destruir(iter);
+    print_test("\n  Destruyo el iterador", true);
+
+    /*-----------------------------------------------------------------------------*/
+
+    CREAR_ITERADOR(iter_2, lista);
+    PRINT_END_OF_LINE();
+    print_test("  Creo otro iterador para la lista", iter_2 != NULL);
+    print_test("      No estoy al final", !lista_iter_al_final(iter_2));
+    print_test("      Ver actual devuelve el elemento esperado", *(char*)lista_iter_ver_actual(iter_2) == dummy_1[N_VARIOS-1]);
+
+    PRINT_END_OF_LINE();
+    FORN(i, 0, N_VARIOS){
+        print_test("  Agrego elemento con el nuevo iterador", lista_iter_insertar(iter_2, &dummy_2[i]));
+        print_test("      No estoy al final", !lista_iter_al_final(iter_2));
+        print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter_2) == dummy_2[i]);
+        printf("      Actual: %c\n", *(char*)lista_iter_ver_actual(iter_2));
+        //mostrar_estado(lista);
+    }
+
+    PRINT_END_OF_LINE();
+    FORN(i, N_VARIOS-1, 0){
+        print_test("  Avanzar es valido", lista_iter_avanzar(iter_2));
+        print_test("      No estoy al final", !lista_iter_al_final(iter_2));
+        print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter_2) == dummy_2[i-1]);
+        printf("      Actual: %c\n", *(char*)lista_iter_ver_actual(iter_2));
+    }
+
+    FORN(i, N_VARIOS-1, -1){
+        print_test("  Avanzar es valido", lista_iter_avanzar(iter_2));
+        print_test("      No estoy al final", !lista_iter_al_final(iter_2));
+        print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter_2) == dummy_1[i]);
+        printf("      Actual: %c\n", *(char*)lista_iter_ver_actual(iter_2));
+    }
+
+    print_test("  Avanzar es valido", lista_iter_avanzar(iter_2));
+    print_test("      Estoy al final", lista_iter_al_final(iter_2));
+    print_test("      Ver actual es NULL", lista_iter_ver_actual(iter_2) == NULL);
+    print_test("      Avanzar es invalido", !lista_iter_avanzar(iter_2));
+    print_test("      Borrar es invalido", lista_iter_borrar(iter_2) == NULL);
+    lista_iter_destruir(iter_2);
+    print_test("\n  Destruyo el segundo iterador", true);
+
+    /*-----------------------------------------------------------------------------*/
+
+    CREAR_ITERADOR(iter_3, lista);
+    PRINT_END_OF_LINE();
+    print_test("  Creo otro iterador para la lista", iter_3 != NULL);
+    print_test("      No estoy al final", !lista_iter_al_final(iter_3));
+    print_test("      Ver actual devuelve el elemento esperado", *(char*)lista_iter_ver_actual(iter_3) == dummy_2[N_VARIOS-1]);
+
+    PRINT_END_OF_LINE();
+    FORN(i, N_VARIOS-1, 0){
+        print_test("  Borrar devuelve el esperado", *(char*)lista_iter_borrar(iter_3) == dummy_2[i]);
+        print_test("      No estoy al final", !lista_iter_al_final(iter_3));
+        print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter_3) == dummy_2[i-1]);
+        printf("      Actual: %c\n\n", *(char*)lista_iter_ver_actual(iter_3));
+    }
+
+    print_test("  Borrar devuelve el esperado", *(char*)lista_iter_borrar(iter_3) == dummy_2[0]);
+    print_test("      No estoy al final", !lista_iter_al_final(iter_3));
+    print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter_3) == dummy_1[N_VARIOS-1]);
+
+    FORN(i, N_VARIOS-1, 0){
+        print_test("  Borrar devuelve el esperado", *(char*)lista_iter_borrar(iter_3) == dummy_1[i]);
+        print_test("      No estoy al final", !lista_iter_al_final(iter_3));
+        print_test("      Ver actual devuelve el elemento", *(char*)lista_iter_ver_actual(iter_3) == dummy_1[i-1]);
+        printf("      Actual: %c\n\n", *(char*)lista_iter_ver_actual(iter_3));
+    }
+
+    print_test("  Borrar devuelve el esperado", *(char*)lista_iter_borrar(iter_3) == dummy_1[0]);
+    print_test("      Estoy al final", lista_iter_al_final(iter_3));
+    print_test("      Ver actual es NULL", lista_iter_ver_actual(iter_3) == NULL);
+    print_test("      Avanzar es invalido", !lista_iter_avanzar(iter_3));
+    print_test("      Borrar es invalido", lista_iter_borrar(iter_3) == NULL);
+
+    /*-----------------------------------------------------------------------------*/
+
+    mostrar_estado(lista);
+    lista_iter_destruir(iter_3);
+    print_test("\n  Destruyo el tercer iterador", true);
+
+    lista_destruir(lista, NULL);
+}
+
+void test_iter_e_NULL(){
+    CREAR_LISTA();
+    FORN(i, 0, N_VARIOS) lista_insertar_ultimo(lista, NULL);
+
+    PRINT_SEPARATOR();
+    printf("\nPRUEBA - ITERADOR EXTERNO: LISTA CON ELEMENTOS NULL\n");
+
+    mostrar_estado(lista);
+
+    /*--------------------------------------------------------------------------*/
+
+    CREAR_ITERADOR(iter, lista);
+    FORN(i, 0, N_VARIOS){
+        if (lista_iter_al_final(iter)) printf("    Estoy al final\n");
+        if (lista_iter_ver_actual(iter) != NULL) printf("    Actual no es NULL\n");
+        if (!lista_iter_avanzar(iter)) printf("   No puedo avanzar\n");
+    }
+    printf("  Recorri lista con elementos NULL\n");
+
+    FORN(i, 0, N_VARIOS){
+        PRINT_END_OF_LINE();
+        print_test("  Agrego elemento NULL con el iterador", lista_iter_insertar(iter, NULL));
+        print_test("      Ver actual es NULL", lista_iter_ver_actual(iter) == NULL);
+        print_test("      Pero no estoy al final", !lista_iter_al_final(iter));
+        print_test("  Avanzar es valido", lista_iter_avanzar(iter));
+        print_test("      Ver actual devuelve NULL", lista_iter_ver_actual(iter) == NULL);
+        print_test("      Estoy al final", lista_iter_al_final(iter));
+        print_test("      Borrar es invalido", !lista_iter_borrar(iter));
+        //mostrar_estado(lista);
+    }
+
+    mostrar_estado(lista);
+    lista_iter_destruir(iter);
+    printf("  Destruyo el iterador\n");
+
+    /*--------------------------------------------------------------------------*/
+
+    CREAR_ITERADOR(iter_2, lista);
+    printf("  Creo otro iterador\n");
+
+    FORN(i, 0, N_VARIOS*2){
+        PRINT_END_OF_LINE();
+        print_test("  No estoy al final", !lista_iter_al_final(iter_2));
+        print_test("  Pero borrar devuelve NULL", lista_iter_borrar(iter_2) == NULL);
+        //mostrar_estado(lista);
+    }
+
+    mostrar_estado(lista);
+    lista_iter_destruir(iter_2);
+
+    /*--------------------------------------------------------------------------*/
+
+    lista_destruir(lista, NULL);
+}
 
 /******************************************************************************/
 // PRUEBAS DEL ITERADOR INTERNO
@@ -359,7 +610,7 @@ void test_iter_i_comportamiento(){
     int extra = 0;
 
     PRINT_SEPARATOR();
-    printf("\nPRUEBA - ITERADOR INTERNO: PRUEBAS BASICAS\n");
+    printf("\nPRUEBA - ITERADOR INTERNO: COMPORTAMIENTO\n");
 
     printf("\n  Recorro lista vacia");
     lista_iterar(lista, contar_elementos, &extra);
@@ -402,11 +653,9 @@ void pruebas_lista_alumno(void){
     test_lista_NULL();
     test_lista_destruccion();
 
-    /*test_iter_e_comportamiento();
-    test_iter_e_algunos_elementos();
+    test_iter_e_comportamiento();
+    test_iter_e_comportamiento_monitoreado();
     test_iter_e_NULL();
-    test_iter_e_volumen();
-    test_iter_e_destruccion();*/
 
     test_iter_i_comportamiento();
 }

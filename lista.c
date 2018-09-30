@@ -15,9 +15,9 @@ typedef struct lista {
 }lista_t;
 
 typedef struct lista_iter {
+    lista_t* lista;
     nodo_t* actual;
     nodo_t* anterior;
-    size_t* length;
 } lista_iter_t;
 
 /******************************************************************************/
@@ -138,9 +138,9 @@ lista_iter_t* lista_iter_crear(lista_t* lista){
     lista_iter_t* iter = malloc(sizeof(lista_iter_t));
     if (iter == NULL) return NULL;
 
+    iter->lista = lista;
     iter->anterior = NULL;
     iter->actual = lista->first;
-    iter->length = &lista->length;
     return iter;
 }
 
@@ -165,20 +165,34 @@ void lista_iter_destruir(lista_iter_t* iter){
 }
 
 bool lista_iter_insertar(lista_iter_t* iter, void* dato){
-    nodo_t* nodo = nodo_crear(dato);
-    if (nodo == NULL) return false;
+    nodo_t* nuevo_nodo = nodo_crear(dato);
+    if (nuevo_nodo == NULL) return false;
 
-    nodo->next = iter->actual;
-    iter->anterior->next = nodo;
-    iter->actual = nodo;
-    iter->length++;
+    nuevo_nodo->next = iter->actual;
+
+    if (iter->anterior == NULL)
+        iter->lista->first = nuevo_nodo;
+    else
+        iter->anterior->next = nuevo_nodo;
+
+    iter->actual = nuevo_nodo;
+    iter->lista->length ++;
+
     return true;
 }
 
 void* lista_iter_borrar(lista_iter_t* iter){
-    nodo_t* nodo = iter->actual;
+    if (lista_iter_al_final(iter)) return NULL;
+
+    nodo_t* nodo_auxiliar = iter->actual;
+
     iter->actual = iter->actual->next;
-    iter->anterior->next = iter->actual;
-    iter->length--;
-    return nodo_destruir(nodo);
+
+    if (iter->anterior == NULL)
+        iter->lista->first = iter->actual;
+    else
+        iter->anterior->next = iter->actual;
+
+    iter->lista->length --;
+    return nodo_destruir(nodo_auxiliar);
 }

@@ -169,34 +169,41 @@ void lista_iter_destruir(lista_iter_t* iter){
 bool lista_iter_insertar(lista_iter_t* iter, void* dato){
     nodo_t* nuevo_nodo = nodo_crear(dato);
     if (nuevo_nodo == NULL) return false;
+    // Creo un nodo con el valor dado
 
     nuevo_nodo->next = iter->actual;
-
-    if (iter->anterior == NULL){
-        iter->lista->first = nuevo_nodo;
-        if (iter->lista->last == NULL) iter->lista->last = nuevo_nodo;
-    }
-    else
-        iter->anterior->next = nuevo_nodo;
-
+    // Hago que el nuevo nodo apunte a mi actual
     iter->actual = nuevo_nodo;
-    iter->lista->length ++;
+    // Hago que actual apunte al nodo
+    if (iter->actual->next == NULL) iter->lista->last = nuevo_nodo;
+    // Si mi actual es el ultimo, cambio el ultimo de la lista para que apunte al nodo
 
-    return true;
+    if (iter->anterior == NULL) // Si el anterior es NULL
+        iter->lista->first = nuevo_nodo; // actualizo el primero de la lista
+    else // Sino 
+        iter->anterior->next = nuevo_nodo; // actualizo el anterior
+    
+    iter->lista->length ++; // aumento el largo de la lista
+
+    return true; // Si llegue hasta aca no hubo errores (supongo), devuelvo true 
 }
 
 void* lista_iter_borrar(lista_iter_t* iter){
     if (lista_iter_al_final(iter)) return NULL;
 
     nodo_t* nodo_auxiliar = iter->actual;
-
+    // Guardo mi nodo actual
+    if (iter->actual->next == NULL) iter->lista->last = iter->anterior;
+    // Si mi actual es el ultimo, cambio el ultimo de la lista para que apunte al anterior
     iter->actual = iter->actual->next;
+    // Muevo el actual al siguiente
 
-    if (iter->anterior == NULL)
-        iter->lista->first = iter->actual;
-    else
-        iter->anterior->next = iter->actual;
+    if (iter->anterior == NULL) // Si el anterior es NULL 
+        iter->lista->first = iter->actual; // actualizo el primero de la lista
+    else // Sino 
+        iter->anterior->next = iter->actual; // actualizo el anterior
 
-    iter->lista->length --;
-    return nodo_destruir(nodo_auxiliar);
+    iter->lista->length --; // reduzco el largo de la lista
+
+    return nodo_destruir(nodo_auxiliar); // Destruyo el nodo guardado
 }

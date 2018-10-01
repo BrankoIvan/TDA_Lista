@@ -44,6 +44,47 @@ void estructura_destruir(void* elemento){
 }
 
 /******************************************************************************/
+// FUNCIONES AUXILIARES PARA PRUEBAS DEL ITERADOR EXTERNO
+
+size_t verificar_estado_vacio(lista_t* lista){
+    size_t fallos = 0;
+    if (lista_ver_primero(lista) != NULL) fallos ++;
+    if (lista_ver_ultimo(lista) != NULL) fallos ++;
+    if (!lista_esta_vacia(lista)) fallos ++;
+    if (lista_largo(lista) != 0) fallos ++;
+    return fallos;
+}
+
+size_t verificar_estado_insertar_primero(lista_t* lista, void* valor, size_t largo){
+    size_t fallos = 0;
+    if (!lista_insertar_primero(lista, valor)) fallos ++;
+    if (*(int*)lista_ver_primero(lista) != *(int*)valor) fallos ++; 
+    if (lista_esta_vacia(lista)) fallos ++; 
+    if (lista_largo(lista) != largo) fallos ++;
+    return fallos;
+}
+
+size_t verificar_estado_insertar_ultimo(lista_t* lista, void* valor, size_t largo){
+    size_t fallos = 0;
+    if (!lista_insertar_ultimo(lista, valor)) fallos ++;
+    if (*(int*)lista_ver_ultimo(lista) != *(int*)valor) fallos ++; 
+    if (lista_esta_vacia(lista)) fallos ++; 
+    if (lista_largo(lista) != largo) fallos ++;
+    return fallos;
+}
+
+size_t verificar_estado_borrar_primero(lista_t* lista, int valor_borrado, int valor_1, int valor_2, size_t largo){
+    size_t fallos = 0;
+    if (*(int*)lista_borrar_primero(lista) != valor_borrado) fallos ++;
+    if (lista_largo(lista) != largo) fallos ++;
+    if (largo == 0) return fallos + verificar_estado_vacio(lista);
+    if (*(int*)lista_ver_primero(lista) != valor_1) fallos ++;
+    if (*(int*)lista_ver_ultimo(lista) != valor_2) fallos ++;
+    if (lista_esta_vacia(lista)) fallos ++;
+    return fallos;
+}
+
+/******************************************************************************/
 // FUNCIONES AUXILIARES PARA PRUEBAS DEL ITERADOR INTERNO
 
 bool imprimir_todo_d(void* valor, void* extra){
@@ -100,13 +141,13 @@ void mostrar_estado(lista_t* lista){
     } else {
         printf("        Primero: ");
         if (lista_ver_primero(lista))
-            printf("%c\n", *(char*)lista_ver_primero(lista));
+            printf("%C\n", *(char*)lista_ver_primero(lista));
         else
             printf("_\n");
 
-        printf("        ULtimo : ");
+        printf("        Ultimo : ");
         if (lista_ver_primero(lista))
-            printf("%c\n\n", *(char*)lista_ver_ultimo(lista));
+            printf("%C\n\n", *(char*)lista_ver_ultimo(lista));
         else
             printf("_\n\n");
     }
@@ -157,51 +198,6 @@ void test_lista_comportamiento(){
     PRINT_END_OF_LINE();
     lista_destruir(lista,NULL);
     print_test("  Pude destruir la lista", true);
-}
-
-void test_lista_comportamiento_extendido(){
-    CREAR_LISTA();
-    int vector_1[N_VARIOS], vector_2[N_VARIOS], medio = 0;
-    FORN(i, 0, N_VARIOS){
-        vector_1[i] = i+1;
-        vector_2[i] = -(i+1);
-    }
-
-    PRINT_SEPARATOR();;
-    printf("\nPRUEBA - LISTA: COMPORTAMIENTO EXTENDIDO\n");
-
-    PRINT_END_OF_LINE();
-    print_test("  Agrego elemento 0 al principio", lista_insertar_primero(lista, &medio));
-
-    PRINT_END_OF_LINE();
-    FORN(i, 0, N_VARIOS){
-        printf("  Agrego %d al principio", i+1);
-        print_test("",lista_insertar_primero(lista, &vector_1[i]));
-        printf("  Agrego %d al final", -(i+1));
-        print_test("",lista_insertar_ultimo(lista, &vector_2[i]));
-        printf("  Ver primero devuelve %d", i+1);
-        print_test("", *(int*)lista_ver_primero(lista) == vector_1[i]);
-        printf("  Ver ultimo devuelve %d", -(i+1));
-        print_test("", *(int*)lista_ver_ultimo(lista) == vector_2[i]);
-        print_test("  Largo es el esperado", lista_largo(lista) == 1+(i+1)*2);
-        PRINT_END_OF_LINE();
-    }
-
-    size_t indice = 1+N_VARIOS*2;
-
-    FORN(i, N_VARIOS, -N_VARIOS){
-        print_test("  Borrar primero devuelve lo esperado", *(int*)lista_borrar_primero(lista) == i);
-        print_test("      La lista no esta vacia", !lista_esta_vacia(lista));
-        print_test("      Ver primero devuelve lo esperado", *(int*)lista_ver_primero(lista) == i-1);
-        print_test("      Ver ultimo devuelve lo esperado", *(int*)lista_ver_ultimo(lista) == -N_VARIOS);
-        print_test("      Largo es el esperado", lista_largo(lista) == indice-1); indice--;
-        PRINT_END_OF_LINE();
-    }
-
-    print_test("  Borrar primero devuelve lo esperado", *(int*)lista_borrar_primero(lista) == -N_VARIOS);
-    print_test("  La lista esta vacia", lista_esta_vacia(lista));
-
-    lista_destruir(lista,NULL);
 }
 
 void test_lista_algunos_elementos(){
@@ -256,7 +252,7 @@ void test_lista_algunos_elementos(){
 
 void test_lista_volumen(){
     CREAR_LISTA();
-    int vector[N_MUCHOS]; FORN(i, 0, N_MUCHOS) vector[i] = i;
+    int vector[N_MUCHOS*2]; FORN(i, 0, N_MUCHOS*2) vector[i] = i;
     size_t fallos;
 
     PRINT_SEPARATOR();;
@@ -264,13 +260,10 @@ void test_lista_volumen(){
 
     fallos = 0;
     FORN(i,0,N_MUCHOS){
-        if (!lista_insertar_primero(lista, &vector[i])) fallos ++; 
-        if (!lista_insertar_ultimo(lista, &vector[i])) fallos ++;
-        if (*(int*)lista_ver_primero(lista) != vector[i]) fallos ++; 
-        if (*(int*)lista_ver_ultimo(lista) != vector[i]) fallos ++; 
-        if (lista_esta_vacia(lista)) fallos ++; 
-        if (lista_largo(lista) != (i+1)*2) fallos ++;
+        fallos += verificar_estado_insertar_primero(lista, &vector[N_MUCHOS-1-i], (i*2)+1);
+        fallos += verificar_estado_insertar_ultimo(lista, &vector[N_MUCHOS+i], (i+1)*2);
     }
+
     PRINT_END_OF_LINE();
     printf("  Agrego elementos verificando invariantes:\n");
     printf("      Invariantes no mantenidas: %d", (int)fallos);
@@ -278,29 +271,9 @@ void test_lista_volumen(){
 
     // Termine con una lista que tiene 2 veces el vector de prueba
     fallos = 0;
-    size_t indice = N_MUCHOS*2;
-    FORN(i, N_MUCHOS-1, -1){
-        if (*(int*)lista_borrar_primero(lista) != i) fallos ++;
-        if (*(int*)lista_ver_primero(lista) != vector[i-1]) fallos ++;
-        if (*(int*)lista_ver_ultimo(lista) != vector[N_MUCHOS-1]) fallos ++;
-        if (lista_esta_vacia(lista)) fallos ++;
-        if (lista_largo(lista) != indice-1) fallos ++;
-        indice--;
+    FORN(i, 0, N_MUCHOS*2){
+        fallos += verificar_estado_borrar_primero(lista, i, i+1, (N_MUCHOS*2)-1, (N_MUCHOS*2)-1-i);  
     }
-    FORN(i, 0, N_MUCHOS-1){
-        if (*(int*)lista_borrar_primero(lista) != i) fallos ++;
-        if (*(int*)lista_ver_primero(lista) != vector[i+1]) fallos ++;
-        if (*(int*)lista_ver_ultimo(lista) != vector[N_MUCHOS-1]) fallos ++;
-        if (lista_esta_vacia(lista)) fallos ++;
-        if (lista_largo(lista) != indice-1) fallos ++; 
-        indice--;
-    }
-
-    if (*(int*)lista_borrar_primero(lista) != N_MUCHOS-1) fallos ++;
-    if (lista_ver_primero(lista) != NULL) fallos ++;
-    if (lista_ver_ultimo(lista) != NULL) fallos ++;
-    if (!lista_esta_vacia(lista)) fallos ++;
-    if (lista_largo(lista) != 0) fallos ++;    
 
     printf("  Borro elementos verificando invariantes:\n");
     printf("      Invariantes no mantenidas: %d", (int)fallos);
@@ -431,7 +404,7 @@ void test_iter_e_comportamiento_monitoreado(){  //No se me ocurrio un mejor nomb
     char dummy_2[N_VARIOS] = CADENA_2;
 
     PRINT_SEPARATOR();
-    printf("\nPRUEBA - ITERADOR EXTERNO: MANEJO DE VARIOS ITERADORES, MONITOREADO CON PRIMITIVAS DE LA LISTA\n");
+    printf("\nPRUEBA - ITERADOR EXTERNO: MANEJO DE VARIOS ITERADORES\n");
 
     PRINT_END_OF_LINE();
     print_test("  Creo iterador con lista vacia", iter != NULL);
@@ -649,7 +622,6 @@ void test_iter_i_comportamiento(){
 
 void pruebas_lista_alumno(void){
     test_lista_comportamiento();
-    test_lista_comportamiento_extendido();
     test_lista_algunos_elementos();
     test_lista_volumen();
     test_lista_NULL();

@@ -284,14 +284,16 @@ void test_lista_volumen(){
         if (*(int*)lista_ver_primero(lista) != vector[i-1]) fallos ++;
         if (*(int*)lista_ver_ultimo(lista) != vector[N_MUCHOS-1]) fallos ++;
         if (lista_esta_vacia(lista)) fallos ++;
-        if (lista_largo(lista) != indice-1) fallos ++; indice--;
+        if (lista_largo(lista) != indice-1) fallos ++;
+        indice--;
     }
     FORN(i, 0, N_MUCHOS-1){
         if (*(int*)lista_borrar_primero(lista) != i) fallos ++;
         if (*(int*)lista_ver_primero(lista) != vector[i+1]) fallos ++;
         if (*(int*)lista_ver_ultimo(lista) != vector[N_MUCHOS-1]) fallos ++;
         if (lista_esta_vacia(lista)) fallos ++;
-        if (lista_largo(lista) != indice-1) fallos ++; indice--;
+        if (lista_largo(lista) != indice-1) fallos ++; 
+        indice--;
     }
 
     if (*(int*)lista_borrar_primero(lista) != N_MUCHOS-1) fallos ++;
